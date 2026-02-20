@@ -58,7 +58,6 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-2">
                                         <form action="{{ route('authors.edit', $data->id) }}" method="get">
-                                            @csrf
                                             <button class="text-indigo-600 hover:text-indigo-800 transition-colors">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                     stroke-width="1.5" stroke="currentColor" class="w-5 h-5">

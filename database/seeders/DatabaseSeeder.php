@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // BOOK Factory
-        Book::factory(100)->create();
+        Book::factory(10)->create();
 
     }
 }

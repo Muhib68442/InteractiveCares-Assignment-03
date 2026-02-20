@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
@@ -13,7 +14,12 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = DB::table('books')->get();
+        $books = DB::table('books')
+            ->select('books.*', 'authors.name as author_name', 'categories.name as category_name')
+            ->leftjoin('authors', 'books.author_id', '=', 'authors.id')
+            ->leftjoin('categories', 'books.category_id', '=', 'categories.id')
+            ->orderBy('id', 'desc')
+            ->get();
         return view('books.index', compact('books'));
     }
 
@@ -22,7 +28,9 @@ class BookController extends Controller
      */
     public function create()
     {
-        return view('books.create');
+        $authors = DB::table('authors')->get();
+        $categories = DB::table('categories')->get();
+        return view('books.create', compact('authors', 'categories'));
     }
 
     /**
@@ -32,13 +40,31 @@ class BookController extends Controller
     {
         $request->validate([
             'title' => 'required|min:3|max:30',
-            'isbn' => 'required|min:3|max:30',
+            'isbn' => 'required|min:3|max:30|unique:books,isbn',
             'author_id' => 'required',
             'category_id' => 'required',
             'description' => 'required|min:3|max:255',
             'status' => 'required',
+            'coverImage' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
+        // storage/app/public/covers
+        $path = $request->file('coverImage')->store('covers', 'public');
+
+        DB::table('books')->insert([
+            'title' => $request->title,
+            'isbn' => $request->isbn,
+            'author_id' => $request->author_id,
+            'category_id' => $request->category_id,
+            'description' => $request->description,
+            'status' => $request->status,
+            'cover_image' => $path,
+            'published_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Book Added successfully.');
     }
 
     /**
@@ -46,7 +72,8 @@ class BookController extends Controller
      */
     public function show(string $id)
     {
-        // return view('books.show');
+        $book = DB::table('books')->where('id', $id)->first();
+        return view('books.show', compact('book'));
     }
 
     /**
@@ -54,17 +81,10 @@ class BookController extends Controller
      */
     public function edit(string $id)
     {
-        $book = (object) [
-            'id' => $id,
-            'title' => 'Harry Potter',
-            'isbn' => '978-0-7475-3269-9',
-            'author_id' => '1',
-            'category_id' => '1',
-            'description' => 'The boy who lived',
-            'status' => 'available',
-            'cover' => 'https://via.placeholder.com/300x400'
-        ];
-        return view('books.edit', compact('book'));
+        $book = DB::table('books')->where('id', $id)->first();
+        $authors = DB::table('authors')->get();
+        $categories = DB::table('categories')->get();
+        return view('books.edit', compact('authors', 'categories', 'book'));
     }
 
     /**
@@ -72,7 +92,54 @@ class BookController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'title' => 'required|min:3|max:30',
+            'isbn' => 'required|min:3|max:30|unique:books,isbn,' . $id . ',id',
+            'author_id' => 'required',
+            'category_id' => 'required',
+            'description' => 'required|min:3|max:255',
+            'status' => 'required',
+            'coverImage' => 'image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        // get old data
+        $book = DB::table('books')->where('id', $id)->first();
+
+        // over update
+        if ($request->hasFile('coverImage')) {
+
+            // store new
+            $path = $request->file('coverImage')->store('covers', 'public');
+
+            // delete old
+            if ($book->cover_image) {
+                Storage::disk('public')->delete($book->cover_image);
+            }
+
+            DB::table('books')->where('id', $id)->update([
+                'title' => $request->title,
+                'isbn' => $request->isbn,
+                'author_id' => $request->author_id,
+                'category_id' => $request->category_id,
+                'description' => $request->description,
+                'status' => $request->status,
+                'cover_image' => $path,
+                'updated_at' => now(),
+            ]);
+        } else {
+            // without cover update
+            DB::table('books')->where('id', $id)->update([
+                'title' => $request->title,
+                'isbn' => $request->isbn,
+                'author_id' => $request->author_id,
+                'category_id' => $request->category_id,
+                'description' => $request->description,
+                'status' => $request->status,
+                'updated_at' => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Book Updated successfully.');
     }
 
     /**
@@ -80,6 +147,12 @@ class BookController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // delete img 
+        $book = DB::table('books')->where('id', $id)->first();  // get old data 
+        if ($book->cover_image) {
+            Storage::disk('public')->delete($book->cover_image);
+        }
+        DB::table('books')->where('id', $id)->delete();
+        return back()->with('success', 'Book Deleted successfully.');
     }
 }

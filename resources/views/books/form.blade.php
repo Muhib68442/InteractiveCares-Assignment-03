@@ -8,8 +8,9 @@
         <div class="flex-shrink-0">
             <div id="imagePreview"
                 class="w-32 h-44 rounded-lg bg-gray-100 border-2 border-gray-200 flex items-center justify-center overflow-hidden">
-                @if(isset($book) && $book->cover)
-                    <img src="{{ $book->cover }}" alt="Preview" class="w-full h-full object-cover" />
+                @if(isset($book) && $book->cover_image)
+                    <img src="{{ asset('storage/' . $book->cover_image) }}" alt="Preview"
+                        class="w-full h-full object-cover" />
                 @else
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="w-12 h-12 text-gray-300">
@@ -31,10 +32,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                 </svg>
+                @error('coverImage')
+                    <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p>
+                @enderror
                 <p class="text-sm text-gray-600 mb-1">
                     <span class="font-medium text-indigo-600">Click to upload</span> or drag and drop
                 </p>
-                <p class="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                <p class="text-xs text-gray-500">PNG, JPG, JPEG up to 2MB</p>
             </div>
             <p class="text-xs text-gray-500 mt-2">Recommended: 300x400px ratio</p>
         </div>
@@ -47,8 +51,10 @@
                 class="text-red-500">*</span></label>
         <input type="text" id="title" name="title" required
             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-            placeholder="Enter book title" 
-            value="{{ old('title', $book->title ?? '') }}" />
+            placeholder="Enter book title" value="{{ old('title', $book->title ?? '') }}" />
+        @error('title')
+            <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p>
+        @enderror
     </div>
 
     <div>
@@ -56,8 +62,10 @@
                 class="text-red-500">*</span></label>
         <input type="text" id="isbn" name="isbn" required
             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-            placeholder="978-0-7475-3269-9" 
-            value="{{ old('isbn', $book->isbn ?? '') }}" />
+            placeholder="978-0-7475-3269-9" value="{{ old('isbn', $book->isbn ?? '') }}" />
+        @error('isbn')
+            <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p>
+        @enderror
     </div>
 </div>
 
@@ -65,25 +73,35 @@
     <div>
         <label for="author" class="block text-sm font-medium text-gray-700 mb-2">Author <span
                 class="text-red-500">*</span></label>
-        <select id="author" name="author" required
+        <select id="author" name="author_id" required
             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
             <option value="">Select an author</option>
-            <option value="1" {{ (old('author', $book->author_id ?? '') == '1') ? 'selected' : '' }}>J.K. Rowling</option>
-            <option value="2" {{ (old('author', $book->author_id ?? '') == '2') ? 'selected' : '' }}>Stephen King</option>
-            <option value="3" {{ (old('author', $book->author_id ?? '') == '3') ? 'selected' : '' }}>George Orwell</option>
+            @foreach($authors as $a_data)
+                <option value="{{ $a_data->id }}" {{ (old('category', $book->author_id ?? '') == $a_data->id) ? 'selected' : '' }}>
+                    {{ $a_data->name }}
+                </option>
+            @endforeach
         </select>
+        @error('author')
+            <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p>
+        @enderror
     </div>
 
     <div>
         <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Category <span
                 class="text-red-500">*</span></label>
-        <select id="category" name="category" required
+        <select id="category" name="category_id" required
             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
             <option value="">Select a category</option>
-            <option value="1" {{ (old('category', $book->category_id ?? '') == '1') ? 'selected' : '' }}>Fiction</option>
-            <option value="2" {{ (old('category', $book->category_id ?? '') == '2') ? 'selected' : '' }}>Science</option>
-            <option value="3" {{ (old('category', $book->category_id ?? '') == '3') ? 'selected' : '' }}>History</option>
+            @foreach($categories as $c_data)
+                <option value="{{ $c_data->id }}" {{ (old('category', $book->category_id ?? '') == $c_data->id) ? 'selected' : '' }}>
+                    {{ $c_data->name }}
+                </option>
+            @endforeach
         </select>
+        @error('category')
+            <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p>
+        @enderror
     </div>
 </div>
 
@@ -92,16 +110,25 @@
     <textarea id="description" name="description" rows="4"
         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
         placeholder="Enter book description">{{ old('description', $book->description ?? '') }}</textarea>
+    @error('description')
+        <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p>
+    @enderror
 </div>
 
 <div>
     <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
     <select id="status" name="status"
         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-        <option value="available" {{ (old('status', $book->status ?? '') == 'available') ? 'selected' : '' }}>Available</option>
-        <option value="borrowed" {{ (old('status', $book->status ?? '') == 'borrowed') ? 'selected' : '' }}>Borrowed</option>
-        <option value="reserved" {{ (old('status', $book->status ?? '') == 'reserved') ? 'selected' : '' }}>Reserved</option>
+        <option value="available" {{ (old('status', $book->status ?? '') == 'available') ? 'selected' : '' }}>Available
+        </option>
+        <option value="borrowed" {{ (old('status', $book->status ?? '') == 'borrowed') ? 'selected' : '' }}>Borrowed
+        </option>
+        <option value="reserved" {{ (old('status', $book->status ?? '') == 'reserved') ? 'selected' : '' }}>Reserved
+        </option>
     </select>
+    @error('status')
+        <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p>
+    @enderror
 </div>
 
 <div class="flex items-center justify-end space-x-4 pt-4">

@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->date('published_at')->nullable();
             $table->foreignId('author_id')->constrained()->onDelete('cascade');
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->enum('status', ['available', 'borrowed', 'reserved'])->default('available');
             $table->timestamps();
             $table->softDeletes();
         });
