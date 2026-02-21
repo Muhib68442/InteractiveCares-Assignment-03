@@ -13,7 +13,14 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::all();
+        // $categories = DB::table('categories')->get();
+        $categories = DB::table('categories')
+            ->select(
+                'categories.*',
+                DB::raw('(SELECT COUNT(*) FROM books WHERE books.category_id = categories.id) AS total_books')
+            )
+            ->orderBy('id', 'desc')
+            ->get();
         return view('categories.index', compact('categories'));
     }
 

@@ -13,7 +13,12 @@ class AuthorController extends Controller
      */
     public function index()
     {
-        $authors = DB::table('authors')->get();
+        // $authors = DB::table('authors')->get();
+        $authors = DB::table('authors')
+            ->leftJoin('books', 'books.author_id', '=', 'authors.id')
+            ->select('authors.*', DB::raw('COUNT(books.id) AS total_books'))
+            ->groupBy('authors.id')
+            ->get();
         return view('authors.index', compact('authors'));
     }
 

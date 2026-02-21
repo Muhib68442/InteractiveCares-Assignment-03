@@ -46,7 +46,7 @@
                                     <div class="font-medium text-gray-800">{{ $data->name }}</div>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600">{{ $data->email }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">N</td>
+                                <td class="px-6 py-4 text-sm text-gray-600">{{ $data->total_books }}</td>
                                 <td class="px-6 py-4">
                                     @php
                                         $data->status == 1 ? $data->status = 'Active' : $data->status = 'Inactive';

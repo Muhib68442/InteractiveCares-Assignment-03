@@ -46,7 +46,7 @@
                                 <div class="font-medium text-gray-800">{{ $data->name }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $data->description }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">N</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ $data->total_books }}</td>
                             <td class="px-6 py-4">
                                 @php
                                     $data->status == 1 ? $data->status = 'Active' : $data->status = 'Inactive';
@@ -57,7 +57,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center space-x-2">
-                                    <form action="{{ route('categories.edit', $data) }}" method="get">
+                                    <form action="{{ route('categories.edit', $data->id) }}" method="get">
                                         <button class="text-indigo-600 hover:text-indigo-800 transition-colors" type="submit">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -66,7 +66,7 @@
                                             </svg>
                                         </button>
                                     </form>
-                                    <form action="{{ route('categories.destroy', $data) }}" method="post">
+                                    <form action="{{ route('categories.destroy', $data->id) }}" method="post">
                                         @csrf
                                         @method('delete')
                                         <button class="text-red-600 hover:text-red-800 transition-colors" type="submit">
